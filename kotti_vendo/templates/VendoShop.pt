@@ -53,11 +53,11 @@
     				</tr>
        				<tr tal:repeat="variation product.variations(request)">
        					<td>${variation.title}</td>
-       					<td>${variation.default_price} €</td>
+       					<td>${api.format_currency(variation.default_price, 'EUR')}</td>
        					<td>
-       						<button type="button" class="btn btn-default btn-xs">
+       						<a type="button" href="/cart_add?sku=${product.sku}&sub=${variation.sub_sku}&cf=${request.resource_url(context)}" class="btn btn-default btn-xs">
   								<span class="glyphicon glyphicon-plus-sign"></span> Add to cart
-							</button>
+							</a>
 						</td>
     				</tr>
     			</table>

@@ -5,9 +5,10 @@ from colander import String, Decimal
 from kotti.views.edit.content import ContentSchema
 from kotti.views.form import AddFormView
 from kotti.views.form import EditFormView
+from kotti import DBSession
 from pyramid.view import view_config
 from pyramid.view import view_defaults
-
+from pyramid.httpexceptions import HTTPFound
 from kotti_vendo import _
 from kotti_vendo.shop import VendoShop, VendoProduct, VendoProductVariation
 from kotti_vendo.fanstatic import kotti_vendo
@@ -54,24 +55,95 @@ class CartView(object):
     def __call__(self):
         return {}
 
+    def _get_product(self, sku, subsku):
+        """return tuple product & variation"""
+        product = DBSession.query(
+            VendoProduct).filter_by(sku=sku).one()
+        variation = DBSession.query(
+            VendoProductVariation).filter_by(sub_sku=subsku).one()
+        return product, variation
+
+    def total(self):
+        total = 0
+        cart = self.request.session.get('cart')
+        if cart is None:
+            return total
+        for fullsku, cartitem in cart.items():
+            product, variation = self._get_product(*fullsku.split('---'))
+            total += variation.default_price * cartitem['amount']
+        return total
+
+
     def cartitems(self):
-        return [
-            dict(title=u'Blabla', price='12.99', amount='1', subtotal='12.99'),
-            dict(title=u'Blubb', price='14.95', amount='1', subtotal='14.95')]
+        cart = self.request.session.get('cart')
+        if cart is None:
+            raise StopIteration
+        for fullsku, cartitem in cart.items():
+            product, variation = self._get_product(*fullsku.split('---'))
+            yield dict(
+                fullsku=fullsku,
+                title=u'{} ({})'.format(product.title, variation.title),
+                price=variation.default_price,
+                amount=cartitem['amount'],
+                subtotal=variation.default_price * cartitem['amount'])
 
 
-@view_config(
-    name='cart_add',
-    renderer='json')
-class CartAdd(object):
+class CartBase(object):
 
     def __init__(self, context, request):
         self.context = context
         self.request = request
 
+    def get_cart(self):
+        sess = self.request.session
+        if 'cart' not in sess:
+            cart = sess['cart'] = dict()
+        else:
+            cart = sess['cart']
+        return cart
+
+    def get_requested_full_sku(self):
+        req = self.request.GET
+        if 'fullsku' in req:
+            return req['fullsku']
+        sku = req['sku']
+        subsku = req['sub']
+        return '{}---{}'.format(sku, subsku)
+
+    def go_back(self):
+        cf = self.request.GET['cf']
+        raise HTTPFound(location=cf)
+
+
+@view_config(
+    name='cart_remove',
+    renderer='json')
+class CartRemove(CartBase):
+
     def __call__(self):
-        import pdb; pdb.set_trace()
-        return {'message': 'added'}
+        cart = self.get_cart()
+        fullsku = self.get_requested_full_sku()
+        del cart[fullsku]
+        self.request.session.flash(
+            'Successfully removed from cart.', 'success')
+        self.go_back()
+
+
+@view_config(
+    name='cart_add',
+    renderer='json')
+class CartAdd(CartBase):
+
+    def __call__(self):
+        cart = self.get_cart()
+        fullsku = self.get_requested_full_sku()
+        if fullsku not in cart:
+            cart[fullsku] = dict(amount=1)
+        else:
+            cart[fullsku]['amount'] += 1
+        self.request.session.flash(
+            'Successfully added to cart.', 'success')
+        self.go_back()
 
 
 @view_defaults(context=VendoShop, permission='view')

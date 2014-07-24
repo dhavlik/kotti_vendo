@@ -1,3 +1,4 @@
+#coding:utf8
 from kotti.resources import Content, Image
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
@@ -100,3 +101,6 @@ class VendoProductVariation(Content):
         self.default_price = kw.get('default_price', 0.0)
         self.unit_singular = kw.get('unit_singular', '')
         self.unit_plural = kw.get('unit_plural', '')
+
+    def formatted_price(self):
+        return u'%.2d €' % self.default_price

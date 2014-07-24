@@ -8,13 +8,19 @@
     				</tr>
        				<tr tal:repeat="cartitem view.cartitems()">
        					<td>${cartitem.title}</td>
-       					<td>${cartitem.price} €</td>
-       					<td>${cartitem.amount} €</td>
-       					<td>${cartitem.subtotal} €</td>
+       					<td>${api.format_currency(cartitem.price, 'EUR')}</td>
+       					<td>${cartitem.amount}</td>
+       					<td>${api.format_currency(cartitem.subtotal, 'EUR')}</td>
        					<td>
-       						<button type="button" class="btn btn-default btn-xs">
+       						<a href="/cart_remove?fullsku=${cartitem.fullsku}&cf=${request.resource_url(context)}" type="button" class="btn btn-default btn-xs">
   								<span class="glyphicon glyphicon-trash"></span> Remove
-							</button>
+							</a>
 						</td>
+    				</tr>
+    				<tr>
+    					<td colspan="2"></td>
+    					<th>Total</th>
+    					<td>${api.format_currency(view.total(), 'EUR')}</td>
+    					<td></td>
     				</tr>
     			</table>
