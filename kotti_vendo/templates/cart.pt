@@ -1,0 +1,20 @@
+    			<table class="table">
+    				<tr>
+    					<th>Title</th>
+    					<th>Price</th>
+    					<th>Amount</th>
+    					<th>Subtotal</th>
+    					<th></th>
+    				</tr>
+       				<tr tal:repeat="cartitem view.cartitems()">
+       					<td>${cartitem.title}</td>
+       					<td>${cartitem.price} €</td>
+       					<td>${cartitem.amount} €</td>
+       					<td>${cartitem.subtotal} €</td>
+       					<td>
+       						<button type="button" class="btn btn-default btn-xs">
+  								<span class="glyphicon glyphicon-trash"></span> Remove
+							</button>
+						</td>
+    				</tr>
+    			</table>

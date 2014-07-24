@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      metal:use-macro="api.macro('kotti:templates/view/master.pt')"
+      i18n:domain="kotti_vendo">
+
+  <article metal:fill-slot="content" class="vendoshop-view content">
+    <h1>${context.title}</h1>
+    <p class="description">
+      ${context.description}
+    </p>
+    <div tal:repeat="product context.children_with_permission(request)">
+    	<div class="row">
+    		<div class="col-md-12">
+    			<h3>${product.title}</h3>
+    		</div>
+    	</div>
+    	<div class="row">
+    		<div class="col-md-3">${product.description}</div>
+    		<div class="col-md-5">
+    			<div id="carousel-images-${product.id}" class="carousel slide">
+    			  <!-- Indicators -->
+    			  <ol class="carousel-indicators">
+    			    <li data-target="#carousel-example-generic" data-slide-to="${image['index']}" tal:repeat="image product.images(request)" tal:attributes="class python:'active' if image['index'] == 0 else ''"></li>
+    			  </ol>
+
+    			  <!-- Wrapper for slides -->
+    			  <div class="carousel-inner">
+    			    <div tal:repeat="image product.images(request)"
+    			    	tal:attributes="class python: 'item active' if image['index'] == 0 else 'item'">
+    			    	 <img class="img-responsive"
+    						src="${image['url']}image/span5" alt=""/>
+    			      <div class="carousel-caption">
+						${image['title']}    			        
+    			      </div>
+    			    </div>
+    			  </div>
+
+    			  <!-- Controls -->
+    			  <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+    			    <span class="glyphicon glyphicon-chevron-left"></span>
+    			  </a>
+    			  <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+    			    <span class="glyphicon glyphicon-chevron-right"></span>
+    			  </a>
+    			</div>
+    		</div>
+    		<div class="col-md-4">
+    			<table class="table">
+    				<tr>
+    					<th>Variation</th>
+    					<th>Price</th>
+    					<th></th>
+    				</tr>
+       				<tr tal:repeat="variation product.variations(request)">
+       					<td>${variation.title}</td>
+       					<td>${variation.default_price} €</td>
+       					<td>
+       						<button type="button" class="btn btn-default btn-xs">
+  								<span class="glyphicon glyphicon-plus-sign"></span> Add to cart
+							</button>
+						</td>
+    				</tr>
+    			</table>
+
+    		</div>
+    	</div>
+
+    </div>
+  </article>
+
+</html>
